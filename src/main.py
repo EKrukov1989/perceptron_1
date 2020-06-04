@@ -4,8 +4,8 @@ This module consists all logic of top level
 """
 
 import tkinter as tk
-import tkinter.font as ttkfont
 from graphwindow import GraphWindow
+from logwindow import LogWindow
 
 FRAME_HALF_PAD = 10
 BACKGROUND_COLOR = '#666666'
@@ -49,27 +49,7 @@ def attach_logs_frame(root):
     logs_frame_inner.pack(expand=True, fill='both',
                           padx=(FRAME_HALF_PAD, 2*FRAME_HALF_PAD),
                           pady=(2*FRAME_HALF_PAD, 2*FRAME_HALF_PAD))
-
-    logs_area = tk.Text(logs_frame_inner, wrap=tk.NONE)
-    logs_area.insert('1.0', 'Area for logs')
-    logs_area['font'] = ttkfont.Font(family='Consolas', size=12)
-    logs_area.config(state=tk.DISABLED)
-    logs_area.grid(row=0, column=0, sticky='NSEW')
-
-    yscroll = tk.Scrollbar(logs_frame_inner)
-    yscroll.grid(row=0, column=1, sticky='NS')
-    xscroll = tk.Scrollbar(logs_frame_inner, orient=tk.HORIZONTAL)
-    xscroll.grid(row=1, column=0, sticky='WE')
-
-    logs_area.config(yscrollcommand=yscroll.set)
-    yscroll.config(command=logs_area.yview)
-    logs_area.config(xscrollcommand=xscroll.set)
-    xscroll.config(command=logs_area.xview)
-
-    logs_frame_inner.columnconfigure(0, weight=1)
-    logs_frame_inner.rowconfigure(0, weight=1)
-    logs_frame_inner.columnconfigure(1, weight=0)
-    logs_frame_inner.rowconfigure(1, weight=0)
+    return LogWindow(logs_frame_inner)
 
 
 def main():
@@ -87,7 +67,9 @@ def main():
     graph_window.set_points(points)
     graph_window.set_line(line)
 
-    attach_logs_frame(root)
+    log_window = attach_logs_frame(root)
+    log_window.add_entry('Area for log')
+
     attach_controls_frame(root)
 
     root.mainloop()
