@@ -1,5 +1,6 @@
 """Module for GraphWindow-class."""
 
+import globals
 import tkinter as tk
 
 
@@ -50,7 +51,16 @@ class GraphWindow():
 
     def __init__(self, parent_frame):
         """Create GUI-elements and attach them to parent."""
-        self.__graph_canvas = tk.Canvas(parent_frame)
+        graph_frame = tk.Frame(parent_frame)
+        graph_frame.place(anchor='nw', relwidth=0.5, relheight=0.5)
+        graph_frame_inner = tk.Frame(graph_frame)
+        graph_frame_inner.pack(expand=True, fill='both',
+                               padx=(2*globals.FRAME_PAD, globals.FRAME_PAD),
+                               pady=(2*globals.FRAME_PAD, globals.FRAME_PAD))
+        graph_frame['bg'] = globals.BG_COLOR
+        graph_frame_inner['bg'] = globals.BG_COLOR
+
+        self.__graph_canvas = tk.Canvas(graph_frame_inner)
         self.__graph_canvas['bg'] = 'white'
         self.__graph_canvas['highlightthickness'] = 0
         self.__graph_canvas.place(anchor='nw', relwidth=1.0, relheight=1.0)

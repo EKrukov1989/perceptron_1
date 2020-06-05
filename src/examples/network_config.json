@@ -1,0 +1,23 @@
+{
+    "Description" : "This file must consists information about network configuration. Network is a multilayer perceptron with usual structure: each unit has connection with each unit in previous layer. Therefore structure of network can be defined by number of input units and 1d-array of data with information about number of units in each layer and type of activation function. Activation function may have next values - linear, sigmoid or tanh",
+
+    "Configuration" :
+    {
+        "NumberOfInputUnits" : 1,
+        "LayersInfo" :
+        [
+            {
+                "NumberOfUnits" : 3,
+                "ActivationFunction" : "tanh"
+            },
+            {
+                "NumberOfUnits" : 3,
+                "ActivationFunction" : "tanh"
+            },
+            {
+                "NumberOfUnits" : 1,
+                "ActivationFunction" : "linear"
+            }
+        ]
+    }
+}

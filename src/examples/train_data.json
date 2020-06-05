@@ -1,0 +1,10 @@
+{
+    "Description" :
+        "This file must consists an 2d-array of data. Each sample must have two values in interval [-1,1]",
+
+    "Data" :
+    [
+        [-0.5, -0.5],
+        [0.5, 0.5]
+    ]
+}
