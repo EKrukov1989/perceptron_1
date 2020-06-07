@@ -47,7 +47,7 @@ class ControlsManager():
         config_entry_label.grid(row=1, column=0, sticky='W', pady=(0, 10))
         config_entry.grid(row=1, column=1, sticky='E', pady=(0, 10))
 
-        show_button = tk.Button(inner_frame, text="Show points", width=15)
+        show_button = tk.Button(inner_frame, text="Load train data", width=15)
         show_button.grid(row=2, column=0, columnspan=2,
                          sticky='W', pady=(0, 10))
 

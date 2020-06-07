@@ -1,8 +1,17 @@
 """Module for LogWindow-class."""
 
+import enum
 import globals
 import tkinter as tk
 import tkinter.font as tkfont
+
+
+class EntryType(enum.Enum):
+    """This enum defines type of entries in log."""
+
+    INFO = enum.auto()
+    WARNING = enum.auto()
+    ERROR = enum.auto()
 
 
 class LogWindow():
@@ -45,15 +54,26 @@ class LogWindow():
         logs_frame_inner.columnconfigure(1, weight=0)
         logs_frame_inner.rowconfigure(1, weight=0)
 
-    def add_entry(self, entry):
+        self.__text_widget.tag_config('ERROR', foreground="red")
+
+    def add_entry(self, entry, entry_type=EntryType.INFO):
         """Add entry(text) in the end of log.
 
         Log window will be automatically scrolled down, if required
         """
+        assert isinstance(EntryType.INFO, type(entry_type))
+        tags = []
+        if entry_type is EntryType.ERROR:
+            tags.append('ERROR')
+
         self.__text_widget.config(state=tk.NORMAL)
-        self.__text_widget.insert(tk.END, entry + '\n')
+        self.__text_widget.insert(tk.END, entry + '\n', tags)
         self.__text_widget.config(state=tk.DISABLED)
         self.__text_widget.yview_moveto(1.0)
+
+    def log_err(self, entry):
+        """Just for brewity."""
+        self.add_entry(entry, EntryType.ERROR)
 
     def set_content(self, content):
         """Set certain content(text) in the log window.
@@ -63,4 +83,4 @@ class LogWindow():
         self.__text_widget.config(state=tk.NORMAL)
         self.__text_widget.delete('0.1', tk.END)
         self.__text_widget.config(state=tk.DISABLED)
-        self.add_entry(content)
+        self.add_entry(content, EntryType.INFO)

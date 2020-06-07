@@ -4,10 +4,21 @@ This module consists all logic of top level
 """
 
 import tkinter as tk
-import json
 from graphwindow import GraphWindow
-from logwindow import LogWindow
+from logwindow import LogWindow, EntryType
 from controlsmanager import ControlsManager
+import dataloadingutil
+
+
+def __show_points(controls, graph, log):
+    path = controls.get_data_path()
+    error, data = dataloadingutil.load_data(path)
+    if error:
+        log.log_err(error)
+    else:
+        graph.set_points(data)
+        log.add_entry('Train data was successfully loaded ' +
+                      '(number of points: ' + str(len(data)) + ')')
 
 
 def main():
@@ -19,21 +30,12 @@ def main():
     root.state('zoomed')
     root.wm_title('perceptron_1')
 
-    graph_window = GraphWindow(root)
-    points = [[-0.5, -0.5], [0.5, 0.5]]
-    line = [[-0.4, -0.4], [0.4, 0.4]]
-    graph_window.set_points(points)
-    graph_window.set_line(line)
+    graph = GraphWindow(root)
+    log = LogWindow(root)
+    controls = ControlsManager(root)
 
-    log_window = LogWindow(root)
-    log_window.add_entry('Area for log')
-
-    controls_manager = ControlsManager(root)
-
-    def on_show_button_click():
-        print('Show button clicked!')
-
-    controls_manager.set_show_button_callback(on_show_button_click)
+    controls.set_show_button_callback(
+        lambda: __show_points(controls, graph, log))
 
     root.mainloop()
 
