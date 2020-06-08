@@ -4,21 +4,49 @@ This module consists all logic of top level
 """
 
 import tkinter as tk
+import numpy
 from graphwindow import GraphWindow
 from logwindow import LogWindow, EntryType
 from controlsmanager import ControlsManager
 import dataloadingutil
+from neuralnetwork import NeuralNetwork
 
 
-def __show_points(controls, graph, log):
+def __load_points(controls, graph, log):
     path = controls.get_data_path()
-    error, data = dataloadingutil.load_data(path)
+    error, data = dataloadingutil.load_train_data(path)
     if error:
         log.log_err(error)
+        return error, data
     else:
         graph.set_points(data)
+        graph.set_line([])
         log.add_entry('Train data was successfully loaded ' +
                       '(number of points: ' + str(len(data)) + ')')
+        return error, data
+
+
+def __launch(controls, graph, log):
+    data_error, data = __load_points(controls, graph, log)
+    if data_error:
+        return  # error already logged
+
+    config_path = controls.get_data_path()
+    config_error, config = dataloadingutil.load_train_data(config_path)
+    if config_error:
+        log.log_err(config_error)
+        return
+
+    net = NeuralNetwork(config)
+    net.train(data)
+
+    x_arr = numpy.linspace(-1.0, 1.0, 20)
+    line_res = []
+    for x in x_arr:
+        y = net.process(x)
+        line_res.append([x, y])
+    log.add_entry('Network was successfully trained.')
+    graph.set_line(line_res)
 
 
 def main():
@@ -34,8 +62,11 @@ def main():
     log = LogWindow(root)
     controls = ControlsManager(root)
 
-    controls.set_show_button_callback(
-        lambda: __show_points(controls, graph, log))
+    controls.set_load_button_callback(
+        lambda: __load_points(controls, graph, log))
+
+    controls.set_launch_button_callback(
+        lambda: __launch(controls, graph, log))
 
     root.mainloop()
 

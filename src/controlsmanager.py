@@ -13,7 +13,7 @@ class ControlsManager():
 
     __data_path_widget = None
     __config_path_widget = None
-    __show_button = None
+    __load_button = None
     __launch_button = None
 
     def __init__(self, parent_frame):
@@ -47,8 +47,8 @@ class ControlsManager():
         config_entry_label.grid(row=1, column=0, sticky='W', pady=(0, 10))
         config_entry.grid(row=1, column=1, sticky='E', pady=(0, 10))
 
-        show_button = tk.Button(inner_frame, text="Load train data", width=15)
-        show_button.grid(row=2, column=0, columnspan=2,
+        load_button = tk.Button(inner_frame, text="Load train data", width=15)
+        load_button.grid(row=2, column=0, columnspan=2,
                          sticky='W', pady=(0, 10))
 
         launch_button = tk.Button(inner_frame, text="Launch", width=15)
@@ -57,7 +57,7 @@ class ControlsManager():
 
         self.__data_path_widget = config_entry
         self.__data_path_widget = data_entry
-        self.__show_button = show_button
+        self.__load_button = load_button
         self.__launch_button = launch_button
 
     def get_data_path(self):
@@ -68,10 +68,10 @@ class ControlsManager():
         """Return path for configuration-file."""
         return self.__config_path_widget.get('0.1', tk.END)
 
-    def set_show_button_callback(self, cbk):
+    def set_load_button_callback(self, cbk):
         """No."""
-        self.__show_button.config(command=cbk)
+        self.__load_button.config(command=cbk)
 
     def set_launch_button_callback(self, cbk):
         """No."""
-        self.__show_button.config(command=cbk)
+        self.__launch_button.config(command=cbk)
