@@ -99,21 +99,49 @@ def __check_data(loaded_obj):
 
 
 def __check_configuration(loaded_obj):
-    if 'Data' not in loaded_obj:
-        return 'The file has no "Data"', []
-    data = loaded_obj['Data']
-    if type(data) is not list:
-        return 'The file has no "Data"', []
+    CONFIG = 'Configuration'
+    NUM_OF_INPUTS = 'NumberOfInputUnits'
+    LAYERS_INFO = 'LayersInfo'
+    NUM_OF_UNITS = 'NumberOfUnits'
+    ACTIV_FUNC = 'ActivationFunction'
 
-    def valid(x): return (x >= -1.0 and x <= 1.0)
+    if CONFIG not in loaded_obj:
+        return 'The file has no "' + CONFIG + '"', {}
+    config = loaded_obj[CONFIG]
+    if type(config) is not dict:
+        return 'The file has no "Configuration"', {}
 
-    for i, sample in enumerate(data):
-        if (len(sample) != 2):
-            return 'Wrong number of elements in sample ' + str(i), []
-        if (type(sample[0]) != float) or (type(sample[1]) != float):
-            return 'Wrong type of element in sample ' + str(i), []
-        if not valid(sample[0]) or not sample[1]:
-            return 'Wrong range of element in sample ' + str(i), []
-        if not valid(sample[0]) or not sample[1]:
-            return 'Wrong range of element in sample ' + str(i), []
-    return None, data
+    if NUM_OF_INPUTS not in loaded_obj:
+        return 'The config has no "' + NUM_OF_INPUTS + '"', {}
+    num_of_iputs = loaded_obj[NUM_OF_INPUTS]
+    if type(num_of_iputs) != int or num_of_iputs <= 0:
+        return '"' + NUM_OF_INPUTS + '" has wrong value', {}
+
+    if LAYERS_INFO not in loaded_obj:
+        return 'The config has no "' + LAYERS_INFO + '"', {}
+    layers_info = loaded_obj[LAYERS_INFO]
+    if type(layers_info) != list:
+        return 'The config has no "' + LAYERS_INFO + '"', {}
+
+    def activ_func_is_valid(info):
+        if ACTIV_FUNC not in info:
+            return False
+        f = info[ACTIV_FUNC]
+        if f == 'linear' or f != "sigmoid" or f != "tanh":
+            return False
+
+    def num_of_units_is_valid(info):
+        if NUM_OF_UNITS not in info:
+            return False
+        num_of_units = info[NUM_OF_UNITS]
+        if type(num_of_units) != int:
+            return False
+        if num_of_units <= 0:
+            return False
+
+    for i, info in enumerate(layers_info):
+        if not activ_func_is_valid(info) or num_of_units_is_valid(info):
+            return 'Layer info is not valid for layer with index ' + str(i), {}
+    return None, loaded_obj
+
+# todo: consider using json-schema
