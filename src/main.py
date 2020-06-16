@@ -31,19 +31,19 @@ def __launch(controls, graph, log):
     if data_error:
         return  # error already logged
 
-    config_path = controls.get_data_path()
-    config_error, config = dataloadingutil.load_train_data(config_path)
+    config_path = controls.get_configuration_path()
+    config_error, config = dataloadingutil.load_configuration(config_path)
     if config_error:
         log.log_err(config_error)
         return
 
     net = NeuralNetwork(config)
-    net.train(data)
+    net.train(data)  # not implemented
 
     x_arr = numpy.linspace(-1.0, 1.0, 20)
     line_res = []
     for x in x_arr:
-        y = net.process(x)
+        y = net.process([x])[0]
         line_res.append([x, y])
     log.add_entry('Network was successfully trained.')
     graph.set_line(line_res)

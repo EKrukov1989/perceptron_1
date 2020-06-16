@@ -7,11 +7,11 @@
         "LayersInfo" :
         [
             {
-                "NumberOfUnits" : 3,
+                "NumberOfUnits" : 2,
                 "ActivationFunction" : "tanh"
             },
             {
-                "NumberOfUnits" : 3,
+                "NumberOfUnits" : 2,
                 "ActivationFunction" : "tanh"
             },
             {

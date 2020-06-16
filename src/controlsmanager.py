@@ -55,8 +55,8 @@ class ControlsManager():
         launch_button.grid(row=3, column=0, columnspan=2,
                            sticky='W', pady=(0, 10))
 
-        self.__data_path_widget = config_entry
         self.__data_path_widget = data_entry
+        self.__config_path_widget = config_entry
         self.__load_button = load_button
         self.__launch_button = launch_button
 
@@ -66,7 +66,7 @@ class ControlsManager():
 
     def get_configuration_path(self):
         """Return path for configuration-file."""
-        return self.__config_path_widget.get('0.1', tk.END)
+        return self.__config_path_widget.get()
 
     def set_load_button_callback(self, cbk):
         """No."""

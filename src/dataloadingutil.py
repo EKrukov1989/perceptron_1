@@ -111,15 +111,15 @@ def __check_configuration(loaded_obj):
     if type(config) is not dict:
         return 'The file has no "Configuration"', {}
 
-    if NUM_OF_INPUTS not in loaded_obj:
+    if NUM_OF_INPUTS not in config:
         return 'The config has no "' + NUM_OF_INPUTS + '"', {}
-    num_of_iputs = loaded_obj[NUM_OF_INPUTS]
+    num_of_iputs = config[NUM_OF_INPUTS]
     if type(num_of_iputs) != int or num_of_iputs <= 0:
         return '"' + NUM_OF_INPUTS + '" has wrong value', {}
 
-    if LAYERS_INFO not in loaded_obj:
+    if LAYERS_INFO not in config:
         return 'The config has no "' + LAYERS_INFO + '"', {}
-    layers_info = loaded_obj[LAYERS_INFO]
+    layers_info = config[LAYERS_INFO]
     if type(layers_info) != list:
         return 'The config has no "' + LAYERS_INFO + '"', {}
 
@@ -127,8 +127,7 @@ def __check_configuration(loaded_obj):
         if ACTIV_FUNC not in info:
             return False
         f = info[ACTIV_FUNC]
-        if f == 'linear' or f != "sigmoid" or f != "tanh":
-            return False
+        return bool(f == 'linear' or f == 'sigmoid' or f == 'tanh')
 
     def num_of_units_is_valid(info):
         if NUM_OF_UNITS not in info:
@@ -142,6 +141,6 @@ def __check_configuration(loaded_obj):
     for i, info in enumerate(layers_info):
         if not activ_func_is_valid(info) or num_of_units_is_valid(info):
             return 'Layer info is not valid for layer with index ' + str(i), {}
-    return None, loaded_obj
+    return None, config
 
 # todo: consider using json-schema
