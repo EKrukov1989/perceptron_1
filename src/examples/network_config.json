@@ -11,10 +11,6 @@
                 "ActivationFunction" : "tanh"
             },
             {
-                "NumberOfUnits" : 2,
-                "ActivationFunction" : "tanh"
-            },
-            {
                 "NumberOfUnits" : 1,
                 "ActivationFunction" : "linear"
             }

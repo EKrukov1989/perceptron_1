@@ -43,4 +43,4 @@ def test_backpropagation():
                 d1 = D1[i][j][g]
                 d2 = D2[i][j][g]
                 error = abs((d2 - d1) / d2)
-                assert error < 0.01
+                assert error < 0.02

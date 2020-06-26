@@ -38,9 +38,10 @@ def __launch(controls, graph, log):
         return
 
     net = NeuralNetwork(config)
-    net.train(data)  # not implemented
+    train_report = net.train(data)  # not implemented
+    log.add_entry(train_report)
 
-    x_arr = numpy.linspace(-1.0, 1.0, 20)
+    x_arr = numpy.linspace(-1.0, 1.0, 40)
     line_res = []
     for x in x_arr:
         y = net.process([x])[0]

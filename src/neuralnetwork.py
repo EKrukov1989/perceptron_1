@@ -43,6 +43,20 @@ b - backpropagation coefficient for unit
 
 import math
 import copy
+import random
+
+
+def _weights_to_str(W):
+    """Return graceful string representation of weights structure."""
+    res = ''
+    for i in range(1, len(W)):
+        res += 'Layer#{}\n'.format(i)
+        for j in range(1, len(W[i])):
+            res += '  Unit#{}-{}: '.format(i, j)
+            for g in range(len(W[i][j])):
+                res += 'W#{}-{}-{}={:10.5f} '.format(i, j, g, W[i][j][g])
+            res += '\n'
+    return res
 
 
 class NeuralNetwork():
@@ -68,10 +82,6 @@ class NeuralNetwork():
             self.__afuncs.append(afunc)
             afunc_deriv = self.__get_deriv_of_afunc(afunc_name)
             self.__afunc_derivs.append(afunc_deriv)
-        self.__init_weights_()
-
-    def train(self, train_data):
-        """Train network."""
         self.__init_weights_()
 
     def process(self, x):
@@ -109,13 +119,16 @@ class NeuralNetwork():
         """Set initial value for all weights."""
         if self.__W:
             return
-        INIT_VAL = 0.5
+        INIT_VAL_COEFF = 1.0
         W = []
         for _, units_num in enumerate(self.__layers):
             W.append([None]*(units_num + 1))
         for i in range(1, len(W)):
             for j in range(1, len(W[i])):
-                W[i][j] = [INIT_VAL] * len(W[i-1])
+                unit_weights = []
+                for _ in range(len(W[i-1])):
+                    unit_weights.append(random.random() * INIT_VAL_COEFF)
+                W[i][j] = unit_weights
         self.__W = W
 
     def __process_forward_propagation(self, x, W):
@@ -150,6 +163,15 @@ class NeuralNetwork():
         """Return error. Sample must have form [f, f]."""
         x, t = sample[0], sample[1]
         return self.__error_function([x, t], self.__W)
+
+    def general_error_function(self, data_set):
+        """Return error. Data_set must have form [[f,f],...]."""
+        general_error = 0.0
+        for sample in data_set:
+            generalized_sample = [[sample[0]], [sample[1]]]
+            error = self.__error_function(generalized_sample, self.__W)
+            general_error += error
+        return general_error
 
     def __error_function(self, sample, W):
         # sample must has from [x=[..], y=[..]]
@@ -193,9 +215,6 @@ class NeuralNetwork():
                 for q in range(1, len(Z[i+1])):
                     tmp += self.__W[i+1][q][j] * B[i+1][q]
                 B[i][j] = afunc_deriv(Z[i][j]) * tmp
-        print('B after calculation:')
-        for b_layer in B:
-            print(b_layer)
 
         # 3. Calculate derivatives:
         # Preinit derivatives structure:
@@ -235,3 +254,53 @@ class NeuralNetwork():
                     d = 0.5 * (e_plus - e_minus) / EPSILON
                     D[i][j][g] = d
         return D
+
+    def train(self, train_data):
+        """Train network. train_data must have format [[f,...], [f,...]]."""
+        self.__init_weights_()
+        # The simplest stochastic gradient descent:
+
+        report = 'Network training by SGD:\n'
+
+        g_err = self.general_error_function(train_data)
+        g_err_checkpoint = g_err
+        STEP = 0.05
+        MAX_ITER_NUM = 50000
+        CHECKPOINT_NUMBER = 5000
+        report += 'Initial state: g_err={}\n'.format(g_err)
+        report += 'Initial weights:\n'
+        report += _weights_to_str(self.__W)
+        report += '\n\n'
+
+        for iteration in range(MAX_ITER_NUM):
+            report += 'Iteration #{}\n'.format(iteration)
+            rand_index = random.randrange(0, len(train_data))
+            sample = train_data[rand_index]
+            gen_sample = [[sample[0]], [sample[1]]]
+            grad = self._calculate_gradient_by_backpropagation(gen_sample)
+            report += 'Gradient:'
+            report += _weights_to_str(grad)
+            for i in range(1, len(self.__W)):
+                for j in range(1, len(self.__W[i])):
+                    for g in range(len(self.__W[i-1])):
+                        self.__W[i][j][g] -= grad[i][j][g] * STEP
+            report += 'Recalculated weights:\n'
+            report += _weights_to_str(self.__W)
+            prev_g_err = g_err
+            g_err = self.general_error_function(train_data)
+            sample_impr = 1 - g_err / prev_g_err
+            report += 'General error={:.4f}, improvement={:.6f}\n'.format(
+                g_err, sample_impr)
+            report += '\n\n'
+            if iteration != 0 and iteration % CHECKPOINT_NUMBER == 0:
+                report += ' * * * \n'
+                report += 'Checkpoint on iteration #{}\n'.format(iteration)
+                checkpoint_impr = 1 - g_err / g_err_checkpoint
+                g_err_checkpoint = g_err
+                report += 'Checkpoint improvement={:.6f}\n'.format(
+                    checkpoint_impr)
+                report += '\n\n'
+                if checkpoint_impr < 0.0001:
+                    report += 'Further training is unreasonable. Stop.\n'
+                    break
+        return report

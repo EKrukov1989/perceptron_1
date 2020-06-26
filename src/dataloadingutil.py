@@ -91,9 +91,7 @@ def __check_data(loaded_obj):
             return 'Wrong number of elements in sample ' + str(i), []
         if (type(sample[0]) != float) or (type(sample[1]) != float):
             return 'Wrong type of element in sample ' + str(i), []
-        if not valid(sample[0]) or not sample[1]:
-            return 'Wrong range of element in sample ' + str(i), []
-        if not valid(sample[0]) or not sample[1]:
+        if not valid(sample[0]) or not valid(sample[1]):
             return 'Wrong range of element in sample ' + str(i), []
     return None, data
 
