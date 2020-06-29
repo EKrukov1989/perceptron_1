@@ -264,7 +264,7 @@ class NeuralNetwork():
 
         g_err = self.general_error_function(train_data)
         g_err_checkpoint = g_err
-        STEP = 0.05
+        STEP = 0.01
         MAX_ITER_NUM = 50000
         CHECKPOINT_NUMBER = 5000
         report += 'Initial state: g_err={}\n'.format(g_err)
