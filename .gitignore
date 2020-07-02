@@ -1,5 +1,5 @@
 # ignore py-cache
-src/__pycache__
+__pycache__/
 
 # ignore test cache
-/.pytest_cache
+.pytest_cache/

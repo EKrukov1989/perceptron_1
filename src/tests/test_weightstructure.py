@@ -1,7 +1,6 @@
 """Some tests for weightsrtucture."""
 
-from weightstructure import WeightStructure
-from weightstructure import WeightIterator
+from network.weightstructure import WeightStructure
 
 
 def __get_config():

@@ -44,8 +44,8 @@ b - backpropagation coefficient for unit
 import math
 import copy
 import random
-from weightstructure import WeightStructure
-from unitstructure import UnitStructure
+from . import weightstructure as ws
+from . import unitstructure as us
 
 
 class NeuralNetwork():
@@ -71,7 +71,7 @@ class NeuralNetwork():
             self.__afuncs.append(afunc)
             afunc_deriv = self.__get_deriv_of_afunc(afunc_name)
             self.__afunc_derivs.append(afunc_deriv)
-        self.__W = WeightStructure(configuration)
+        self.__W = ws.WeightStructure(configuration)
         self.__W.random_initialization()
 
     def process(self, x):
@@ -105,7 +105,7 @@ class NeuralNetwork():
     def __process_forward_propagation(self, x, W):
         """Return result as array, argument - array as well."""
         # Z - data structure with activations of all units
-        Z = UnitStructure(self.__configuration)
+        Z = us.UnitStructure(self.__configuration)
         Z.init_imagine_units()
         for i, x_val in enumerate(x):
             Z.set_elt(0, i+1, x_val)
@@ -154,7 +154,7 @@ class NeuralNetwork():
         Z = self.__process_forward_propagation(x, self.__W)
 
         # 2. Calculate all backpropagations coefficients:
-        B = UnitStructure(self.__configuration)
+        B = us.UnitStructure(self.__configuration)
         t = [None]
         for y_val in sample[1]:
             t.append(y_val)
@@ -173,7 +173,7 @@ class NeuralNetwork():
             B.set_elt(i, j, b)
 
         # 3. Calculate derivatives:
-        D = WeightStructure(self.__configuration)
+        D = ws.WeightStructure(self.__configuration)
         for _, [i, j, g] in D:
             derivative = B.get_elt(i, j) * Z.get_elt(i-1, g)
             D.set_elt(i, j, g, derivative)
@@ -182,7 +182,7 @@ class NeuralNetwork():
     def _calculate_gradient_numerically(self, sample):
         """Return gradient calculated numerically."""
         EPSILON = 1.0e-10
-        D = WeightStructure(self.__configuration)
+        D = ws.WeightStructure(self.__configuration)
         for _, [i, j, g] in D:
             w_plus = copy.deepcopy(self.__W)
             w_minus = copy.deepcopy(self.__W)

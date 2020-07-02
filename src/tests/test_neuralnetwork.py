@@ -1,6 +1,6 @@
 """Some tests for neuralnetrowk."""
 
-from neuralnetwork import NeuralNetwork
+from network.neuralnetwork import NeuralNetwork
 
 
 def __get_config():

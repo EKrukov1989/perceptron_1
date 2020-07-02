@@ -1,6 +1,6 @@
 """Some tests for weightsrtucture."""
 
-from unitstructure import UnitStructure
+from network.unitstructure import UnitStructure
 
 
 def __get_config():

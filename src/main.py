@@ -9,7 +9,7 @@ from graphwindow import GraphWindow
 from logwindow import LogWindow, EntryType
 from controlsmanager import ControlsManager
 import dataloadingutil
-from neuralnetwork import NeuralNetwork
+from network.neuralnetwork import NeuralNetwork
 
 
 def __load_points(controls, graph, log):
