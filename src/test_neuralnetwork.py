@@ -18,7 +18,8 @@ def test_calculation():
     config = __get_config()
     net = NeuralNetwork(config)
     x = [0.1]
-    net.process(x)
+    y = net.process(x)
+    assert type(y[0]) == float
 
 
 def test_error_calc():
@@ -37,10 +38,7 @@ def test_backpropagation():
     sample = [[0.5], [15]]
     D1 = net._calculate_gradient_numerically(sample)
     D2 = net._calculate_gradient_by_backpropagation(sample)
-    for i in range(1, len(D1)):
-        for j in range(1, len(D1[i])):
-            for g in range(len(D1[i][j])):
-                d1 = D1[i][j][g]
-                d2 = D2[i][j][g]
-                error = abs((d2 - d1) / d2)
-                assert error < 0.02
+    for deriv_1, [i, j, g] in D1:
+        deriv_2 = D2.get_elt(i, j, g)
+        error = abs((deriv_2 - deriv_1) / deriv_2)
+        assert error < 0.02

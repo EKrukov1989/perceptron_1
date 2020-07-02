@@ -82,8 +82,8 @@ class WeightStructure():
     def random_initialization(self):
         """Init all weights randomly."""
         COEFF = 1.0
-        for idx, [_, [i, j, g]] in enumerate(self.__internal_array):
-            self.__internal_array[idx] = [random.random() * COEFF, [i, j, g]]
+        for idx, [_, ijg] in enumerate(self.__internal_array):
+            self.__internal_array[idx] = [random.random() * COEFF, ijg]
 
     def get_elt(self, i, j, g):
         """Get element by index."""
@@ -94,6 +94,14 @@ class WeightStructure():
             raise AssertionError
         value, _ = self.__internal_array[idx]
         return value
+
+    def get_unit_elts(self, i, j):
+        """Return list of weights for corresponding unit."""
+        unit_indices = self.__index_map[i][j]
+        result = []
+        for idx in unit_indices:
+            result.append(self.__internal_array[idx])
+        return result
 
     def set_elt(self, i, j, g, value):
         """Set element by index."""
@@ -107,7 +115,7 @@ class WeightStructure():
         """
         return WeightIterator(self.__internal_array)
 
-    def get_string_representation(self, colored=False):
+    def get_string(self, colored=False):
         """Return graceful string representation of weights structure.
 
         Output string may consist color tags (for output in terminal) if
@@ -116,9 +124,8 @@ class WeightStructure():
         res = ''
         imap = self.__index_map
         for i in range(1, len(imap)):
-            res += '  Layer#{}\n'.format(i)
             for j in range(1, len(imap[i])):
-                res += 'Unit#{}-{}:  '.format(i, j)
+                res += 'U#{}-{}:  '.format(i, j)
                 for g in range(len(imap[i][j])):
                     idx = imap[i][j][g]
                     value, _ = self.__internal_array[idx]
@@ -134,7 +141,7 @@ class WeightStructure():
 
     def __str__(self):
         """Return graceful string representation of weights structure."""
-        return self.get_string_representation(True)
+        return self.get_string(True)
 
     def __len__(self):
         """Return length of weights sequence."""

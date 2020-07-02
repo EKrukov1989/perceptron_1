@@ -44,26 +44,15 @@ b - backpropagation coefficient for unit
 import math
 import copy
 import random
-
-
-def _weights_to_str(W):
-    """Return graceful string representation of weights structure."""
-    res = ''
-    for i in range(1, len(W)):
-        res += 'Layer#{}\n'.format(i)
-        for j in range(1, len(W[i])):
-            res += '  Unit#{}-{}: '.format(i, j)
-            for g in range(len(W[i][j])):
-                res += 'W#{}-{}-{}={:10.5f} '.format(i, j, g, W[i][j][g])
-            res += '\n'
-    return res
+from weightstructure import WeightStructure
+from unitstructure import UnitStructure
 
 
 class NeuralNetwork():
     """Implementation of multilayer perceptron."""
 
-    __config = {}
-    __W = []
+    __configuration = {}
+    __W = None
     __layers = []  # info about num of units for each layer
     __afuncs = []  # activation function for each layer
     __afunc_derivs = []  # derivatives od afuncs for each layer
@@ -82,7 +71,8 @@ class NeuralNetwork():
             self.__afuncs.append(afunc)
             afunc_deriv = self.__get_deriv_of_afunc(afunc_name)
             self.__afunc_derivs.append(afunc_deriv)
-        self.__init_weights_()
+        self.__W = WeightStructure(configuration)
+        self.__W.random_initialization()
 
     def process(self, x):
         """Calculate output of network for certain x.
@@ -91,10 +81,7 @@ class NeuralNetwork():
         configuration of net.
         """
         Z = self.__process_forward_propagation(x, self.__W)
-        y = []
-        for k in range(1, len(Z[-1])):
-            y.append(Z[-1][k])
-        return y
+        return Z.get_output_layer()
 
     def get_configure(self):
         """Return information about configuration of network."""
@@ -115,54 +102,28 @@ class NeuralNetwork():
                  'linear': lambda x: 1}
         return funcs[func_name]
 
-    def __init_weights_(self):
-        """Set initial value for all weights."""
-        if self.__W:
-            return
-        INIT_VAL_COEFF = 1.0
-        W = []
-        for _, units_num in enumerate(self.__layers):
-            W.append([None]*(units_num + 1))
-        for i in range(1, len(W)):
-            for j in range(1, len(W[i])):
-                unit_weights = []
-                for _ in range(len(W[i-1])):
-                    unit_weights.append(random.random() * INIT_VAL_COEFF)
-                W[i][j] = unit_weights
-        self.__W = W
-
     def __process_forward_propagation(self, x, W):
         """Return result as array, argument - array as well."""
-        # Z - array of unit-outputs, that consists also unput value and
-        # imagined zero-indexed units:
-        Z = []
-
-        # Preinitialize Z-list, because it makes next code more readable:
-        for units_num in self.__layers:
-            Z.append([None]*(units_num + 1))
-        for i, z_layer in enumerate(Z):
-            if i != len(Z)-1:
-                z_layer[0] = 1
+        # Z - data structure with activations of all units
+        Z = UnitStructure(self.__configuration)
+        Z.init_imagine_units()
         for i, x_val in enumerate(x):
-            Z[0][i+1] = x_val
+            Z.set_elt(0, i+1, x_val)
 
-        layers_num = len(self.__layers)
-        for i in range(1, layers_num):
-            units_num = len(Z[i])
-            prev_layer_units_num = len(Z[i-1])
-            activation_func = self.__afuncs[i]
-
-            for j in range(1, units_num):
-                a = 0
-                for g in range(prev_layer_units_num):
-                    a += Z[i-1][g] * W[i][j][g]
-                Z[i][j] = activation_func(a)
+        for _, [i, j] in Z:
+            if i == 0 or j == 0:
+                continue
+            weights = W.get_unit_elts(i, j)
+            a = 0
+            for w, [_, _, g] in weights:
+                a += Z.get_elt(i-1, g) * w
+            z_val = self.__afuncs[i](a)
+            Z.set_elt(i, j, z_val)
         return Z
 
     def error_function(self, sample):
         """Return error. Sample must have form [f, f]."""
-        x, t = sample[0], sample[1]
-        return self.__error_function([x, t], self.__W)
+        return self.__error_function(sample, self.__W)
 
     def general_error_function(self, data_set):
         """Return error. Data_set must have form [[f,f],...]."""
@@ -177,9 +138,7 @@ class NeuralNetwork():
         # sample must has from [x=[..], y=[..]]
         x, t = sample[0], sample[1]
         Z = self.__process_forward_propagation(x, W)
-        y = []
-        for k in range(1, len(Z[-1])):
-            y.append(Z[-1][k])
+        y = Z.get_output_layer()
         err = 0
         for i, y_val in enumerate(y):
             err += 0.5 * (y_val - t[i])**2
@@ -195,81 +154,58 @@ class NeuralNetwork():
         Z = self.__process_forward_propagation(x, self.__W)
 
         # 2. Calculate all backpropagations coefficients:
-        # Preinit backpropagaion coefficients structure:
-        B = []
-        for units_num in self.__layers:
-            B.append([None]*(units_num + 1))
-        # 2.1. for output layer:
+        B = UnitStructure(self.__configuration)
         t = [None]
         for y_val in sample[1]:
             t.append(y_val)
-        output_afunc_deriv = self.__afunc_derivs[-1]
-        for k in range(1, len(Z[-1])):
-            z = Z[-1][k]
-            B[-1][k] = (z - t[k]) * output_afunc_deriv(z)
-        # 2.2. for hidden layers:
-        for i in range(len(Z) - 2, 0, -1):
+
+        for z, [i, j] in reversed(Z):
+            if j == 0 or i == 0:
+                continue
             afunc_deriv = self.__afunc_derivs[i]
-            for j in range(1, len(Z[i])):
+            if i == (Z.get_layers_num() - 1):
+                b = (z - t[j]) * afunc_deriv(z)
+            else:
                 tmp = 0
-                for q in range(1, len(Z[i+1])):
-                    tmp += self.__W[i+1][q][j] * B[i+1][q]
-                B[i][j] = afunc_deriv(Z[i][j]) * tmp
+                for q in range(1, Z.get_layers()[i+1]):
+                    tmp += self.__W.get_elt(i+1, q, j) * B.get_elt(i+1, q)
+                b = afunc_deriv(z) * tmp
+            B.set_elt(i, j, b)
 
         # 3. Calculate derivatives:
-        # Preinit derivatives structure:
-        D = []  # derivatives array has th same structure as weight array
-        for _, units_num in enumerate(self.__layers):
-            D.append([None]*(units_num + 1))
-        for i in range(1, len(D)):
-            for j in range(1, len(D[i])):
-                D[i][j] = ['d_val'] * len(D[i-1])
-        # Calculate derivatives:
-        for i in range(1, len(Z)):
-            for j in range(1, len(Z[i])):
-                for g in range(len(Z[i-1])):
-                    D[i][j][g] = B[i][j] * Z[i-1][g]
+        D = WeightStructure(self.__configuration)
+        for _, [i, j, g] in D:
+            derivative = B.get_elt(i, j) * Z.get_elt(i-1, g)
+            D.set_elt(i, j, g, derivative)
         return D
 
     def _calculate_gradient_numerically(self, sample):
         """Return gradient calculated numerically."""
-        EPSILON = 1.0e-12
-        # Preinit derivatives structure:
-        D = []  # derivatives array has th same structure as weight array
-        for _, units_num in enumerate(self.__layers):
-            D.append([None]*(units_num + 1))
-        for i in range(1, len(D)):
-            for j in range(1, len(D[i])):
-                D[i][j] = ['d_val'] * len(D[i-1])
-        # Calculate derivatives:
-        for i in range(1, len(D)):
-            for j in range(1, len(D[i])):
-                for g in range(len(D[i][j])):
-                    weights_plus = copy.deepcopy(self.__W)
-                    weights_minus = copy.deepcopy(self.__W)
-                    weights_plus[i][j][g] += EPSILON
-                    weights_minus[i][j][g] -= EPSILON
-                    e_plus = self.__error_function(sample, weights_plus)
-                    e_minus = self.__error_function(sample, weights_minus)
-                    d = 0.5 * (e_plus - e_minus) / EPSILON
-                    D[i][j][g] = d
+        EPSILON = 1.0e-10
+        D = WeightStructure(self.__configuration)
+        for _, [i, j, g] in D:
+            w_plus = copy.deepcopy(self.__W)
+            w_minus = copy.deepcopy(self.__W)
+            w_plus.set_elt(i, j, g, w_plus.get_elt(i, j, g) + EPSILON)
+            w_minus.set_elt(i, j, g, w_minus.get_elt(i, j, g) - EPSILON)
+            e_plus = self.__error_function(sample, w_plus)
+            e_minus = self.__error_function(sample, w_minus)
+            derivative = 0.5 * (e_plus - e_minus) / EPSILON
+            D.set_elt(i, j, g, derivative)
         return D
 
     def train(self, train_data):
         """Train network. train_data must have format [[f,...], [f,...]]."""
-        self.__init_weights_()
         # The simplest stochastic gradient descent:
-
         report = 'Network training by SGD:\n'
-
         g_err = self.general_error_function(train_data)
         g_err_checkpoint = g_err
-        STEP = 0.01
+        STEP = 0.1
         MAX_ITER_NUM = 50000
         CHECKPOINT_NUMBER = 5000
         report += 'Initial state: g_err={}\n'.format(g_err)
         report += 'Initial weights:\n'
-        report += _weights_to_str(self.__W)
+        report += self.__W.get_string()
         report += '\n\n'
 
         for iteration in range(MAX_ITER_NUM):
@@ -279,13 +215,11 @@ class NeuralNetwork():
             gen_sample = [[sample[0]], [sample[1]]]
             grad = self._calculate_gradient_by_backpropagation(gen_sample)
             report += 'Gradient:'
-            report += _weights_to_str(grad)
-            for i in range(1, len(self.__W)):
-                for j in range(1, len(self.__W[i])):
-                    for g in range(len(self.__W[i-1])):
-                        self.__W[i][j][g] -= grad[i][j][g] * STEP
+            report += grad.get_string()
+            for weight, [i, j, g] in self.__W:
+                weight -= grad.get_elt(i, j, g) * STEP
             report += 'Recalculated weights:\n'
-            report += _weights_to_str(self.__W)
+            report += self.__W.get_string()
             prev_g_err = g_err
             g_err = self.general_error_function(train_data)
             sample_impr = 1 - g_err / prev_g_err

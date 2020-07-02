@@ -42,13 +42,13 @@ def test_iteration():
                        [2, 2, 0], [2, 2, 1], [2, 2, 2],
                        [3, 1, 0], [3, 1, 1], [3, 1, 2]]
 
-    for _, [i, j, g] in w:
-        assert CORRECT_INDICES[forward_counter] == [i, j, g]
+    for _, ijg in w:
+        assert CORRECT_INDICES[forward_counter] == ijg
         forward_counter += 1
     assert forward_counter == 13
 
-    for _, [i, j, g] in reversed(w):
-        assert CORRECT_INDICES[reverse_counter] == [i, j, g]
+    for _, ijg in reversed(w):
+        assert CORRECT_INDICES[reverse_counter] == ijg
         reverse_counter -= 1
     assert reverse_counter == -1
 
